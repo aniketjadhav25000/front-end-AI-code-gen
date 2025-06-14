@@ -1,74 +1,190 @@
-import React, { useState } from 'react';
-import { Menu, X } from 'lucide-react'; // You need to install lucide-react for icons
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, X, RefreshCw } from 'lucide-react';
 
-const Navbar = ({ activeTab, setActiveTab }) => {
+const Navbar = ({ activeTab, navigate }) => {
   const tabs = ['generate', 'history', 'settings'];
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
+
+  const scrollToTop = () => {
+    setIsScrolling(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    const checkIfScrolled = () => {
+      if (window.pageYOffset === 0) {
+        setIsScrolling(false);
+        return;
+      }
+      window.scrollTo(0, 0);
+      requestAnimationFrame(checkIfScrolled);
+    };
+
+    setTimeout(() => {
+      if (window.pageYOffset > 0) {
+        checkIfScrolled();
+      } else {
+        setIsScrolling(false);
+      }
+    }, 300);
+  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   const handleTabClick = (tab) => {
-    setActiveTab(tab);
-    setIsMobileMenuOpen(false); // close menu on tab click
+    navigate(`/${tab}`);
+    setIsMobileMenuOpen(false);
+    scrollToTop();
+  };
+
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
+  const mobileMenuVariants = {
+    hidden: {
+      opacity: 0,
+      height: 0,
+      transition: {
+        duration: 0.3,
+        ease: 'easeInOut',
+      },
+    },
+    visible: {
+      opacity: 1,
+      height: 'auto',
+      transition: {
+        duration: 0.3,
+        ease: 'easeInOut',
+        staggerChildren: 0.1,
+        when: 'beforeChildren',
+      },
+    },
+  };
+
+  const tabItemVariants = {
+    hidden: { opacity: 0, y: -10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.2,
+      },
+    },
+  };
+
+  const hoverTapVariants = {
+    hover: { scale: 1.05 },
+    tap: { scale: 0.95 },
   };
 
   return (
-    <nav className="fixed top-0 left-0 w-full bg-gray-900 shadow z-50">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-white">🧠 AI Coding Assistant</h1>
+    <nav className="fixed top-0 left-0 w-full bg-gray-900/90 backdrop-blur-md shadow-lg z-50 border-b border-gray-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+        {/* Logo */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex items-center"
+        >
+          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center mr-2">
+            <span className="text-white text-lg">🧠</span>
+          </div>
+          <h1 className="text-xl font-bold text-white bg-gradient-to-r from-indigo-300 to-purple-400 bg-clip-text text-transparent">
+            AI Coding Assistant
+          </h1>
+        </motion.div>
 
-        {/* Desktop Nav */}
-        <div className="hidden md:flex space-x-4">
+        {/* Desktop Menu */}
+        <div className="hidden md:flex space-x-2 items-center">
           {tabs.map((tab) => (
-            <button
+            <motion.button
               key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`capitalize px-4 py-2 rounded transition duration-300 ${
+              onClick={() => handleTabClick(tab)}
+              whileHover="hover"
+              whileTap="tap"
+              variants={hoverTapVariants}
+              className={`capitalize px-4 py-2 rounded-lg transition-all duration-200 ${
                 activeTab === tab
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-gray-300 hover:text-white'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/20'
+                  : 'text-gray-300 hover:text-white hover:bg-gray-800'
               }`}
             >
               {tab}
-            </button>
+            </motion.button>
           ))}
+          <motion.button
+            onClick={handleRefresh}
+            whileHover="hover"
+            whileTap="tap"
+            variants={hoverTapVariants}
+            className="ml-2 p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800"
+            title="Refresh current page"
+          >
+            <RefreshCw size={20} />
+          </motion.button>
         </div>
 
-        {/* Hamburger for Mobile */}
-        <div className="md:hidden">
-          <button
-            onClick={toggleMobileMenu}
-            className="text-white focus:outline-none"
+        {/* Mobile Toggle Button */}
+        <div className="md:hidden flex items-center gap-2">
+          <motion.button
+            onClick={handleRefresh}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="p-2 rounded-lg text-gray-300 hover:text-white"
+            title="Refresh"
           >
-            {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-          </button>
+            <RefreshCw size={20} />
+          </motion.button>
+          <motion.button
+            onClick={toggleMobileMenu}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="p-2 rounded-lg bg-gray-800 text-white focus:outline-none"
+          >
+            {isMobileMenuOpen ? (
+              <X size={24} className="text-gray-300" />
+            ) : (
+              <Menu size={24} className="text-gray-300" />
+            )}
+          </motion.button>
         </div>
       </div>
 
       {/* Mobile Menu */}
-      <div
-        className={`md:hidden transition-all duration-300 ease-in-out transform ${
-          isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-        } overflow-hidden bg-gray-800`}
-      >
-        <div className="flex flex-col px-6 pb-4 space-y-2">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => handleTabClick(tab)}
-              className={`capitalize px-4 py-2 rounded text-left transition duration-300 ${
-                activeTab === tab
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-gray-300 hover:text-white'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-      </div>
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            variants={mobileMenuVariants}
+            className="md:hidden bg-gray-800/95 backdrop-blur-sm overflow-hidden"
+          >
+            <motion.div className="flex flex-col px-4 py-2 space-y-1">
+              {tabs.map((tab) => (
+                <motion.button
+                  key={tab}
+                  onClick={() => handleTabClick(tab)}
+                  variants={tabItemVariants}
+                  whileHover={{ backgroundColor: 'rgba(79, 70, 229, 0.2)' }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`capitalize px-4 py-3 rounded-lg text-left transition-all ${
+                    activeTab === tab
+                      ? 'bg-indigo-600 text-white font-medium'
+                      : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                  }`}
+                >
+                  {tab}
+                </motion.button>
+              ))}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 };
