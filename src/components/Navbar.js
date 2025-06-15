@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, RefreshCw } from 'lucide-react';
+import { Menu, X, RefreshCw, LogOut, LogIn, UserPlus } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 
 const Navbar = ({ activeTab, navigate }) => {
+  const { currentUser, logOut } = useAuth();
   const tabs = ['generate', 'history', 'settings'];
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
@@ -41,6 +44,15 @@ const Navbar = ({ activeTab, navigate }) => {
 
   const handleRefresh = () => {
     window.location.reload();
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logOut();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const mobileMenuVariants = {
@@ -100,7 +112,7 @@ const Navbar = ({ activeTab, navigate }) => {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex space-x-2 items-center">
-          {tabs.map((tab) => (
+          {currentUser && tabs.map((tab) => (
             <motion.button
               key={tab}
               onClick={() => handleTabClick(tab)}
@@ -116,6 +128,7 @@ const Navbar = ({ activeTab, navigate }) => {
               {tab}
             </motion.button>
           ))}
+          
           <motion.button
             onClick={handleRefresh}
             whileHover="hover"
@@ -126,6 +139,44 @@ const Navbar = ({ activeTab, navigate }) => {
           >
             <RefreshCw size={20} />
           </motion.button>
+
+          {currentUser ? (
+            <motion.button
+              onClick={handleLogout}
+              whileHover="hover"
+              whileTap="tap"
+              variants={hoverTapVariants}
+              className="ml-2 px-4 py-2 rounded-lg bg-red-600/90 hover:bg-red-700 text-white flex items-center gap-2"
+            >
+              <LogOut size={18} />
+              <span>Logout</span>
+            </motion.button>
+          ) : (
+            <>
+              <Link to="/login">
+                <motion.button
+                  whileHover="hover"
+                  whileTap="tap"
+                  variants={hoverTapVariants}
+                  className="ml-2 px-4 py-2 rounded-lg bg-blue-600/90 hover:bg-blue-700 text-white flex items-center gap-2"
+                >
+                  <LogIn size={18} />
+                  <span>Login</span>
+                </motion.button>
+              </Link>
+              <Link to="/signup">
+                <motion.button
+                  whileHover="hover"
+                  whileTap="tap"
+                  variants={hoverTapVariants}
+                  className="ml-2 px-4 py-2 rounded-lg bg-green-600/90 hover:bg-green-700 text-white flex items-center gap-2"
+                >
+                  <UserPlus size={18} />
+                  <span>Sign Up</span>
+                </motion.button>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Toggle Button */}
@@ -165,7 +216,7 @@ const Navbar = ({ activeTab, navigate }) => {
             className="md:hidden bg-gray-800/95 backdrop-blur-sm overflow-hidden"
           >
             <motion.div className="flex flex-col px-4 py-2 space-y-1">
-              {tabs.map((tab) => (
+              {currentUser && tabs.map((tab) => (
                 <motion.button
                   key={tab}
                   onClick={() => handleTabClick(tab)}
@@ -181,6 +232,44 @@ const Navbar = ({ activeTab, navigate }) => {
                   {tab}
                 </motion.button>
               ))}
+              
+              {currentUser ? (
+                <motion.button
+                  onClick={handleLogout}
+                  variants={tabItemVariants}
+                  whileHover={{ backgroundColor: 'rgba(220, 38, 38, 0.2)' }}
+                  whileTap={{ scale: 0.98 }}
+                  className="px-4 py-3 rounded-lg text-left text-red-400 hover:text-white hover:bg-red-600/20 flex items-center gap-3"
+                >
+                  <LogOut size={18} />
+                  <span>Logout</span>
+                </motion.button>
+              ) : (
+                <>
+                  <Link to="/login">
+                    <motion.button
+                      variants={tabItemVariants}
+                      whileHover={{ backgroundColor: 'rgba(37, 99, 235, 0.2)' }}
+                      whileTap={{ scale: 0.98 }}
+                      className="px-4 py-3 rounded-lg text-left text-blue-400 hover:text-white hover:bg-blue-600/20 flex items-center gap-3"
+                    >
+                      <LogIn size={18} />
+                      <span>Login</span>
+                    </motion.button>
+                  </Link>
+                  <Link to="/signup">
+                    <motion.button
+                      variants={tabItemVariants}
+                      whileHover={{ backgroundColor: 'rgba(22, 163, 74, 0.2)' }}
+                      whileTap={{ scale: 0.98 }}
+                      className="px-4 py-3 rounded-lg text-left text-green-400 hover:text-white hover:bg-green-600/20 flex items-center gap-3"
+                    >
+                      <UserPlus size={18} />
+                      <span>Sign Up</span>
+                    </motion.button>
+                  </Link>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}
