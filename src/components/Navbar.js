@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, RefreshCw } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = ({ activeTab, navigate }) => {
-  const tabs = ['generate', 'history', 'settings'];
+  const tabs = ['generate', 'user-history', 'settings', 'dashboard', 'saved'];
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
+  const { logout, user } = useAuth();
 
   const scrollToTop = () => {
     setIsScrolling(true);
@@ -43,36 +45,23 @@ const Navbar = ({ activeTab, navigate }) => {
     window.location.reload();
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   const mobileMenuVariants = {
-    hidden: {
-      opacity: 0,
-      height: 0,
-      transition: {
-        duration: 0.3,
-        ease: 'easeInOut',
-      },
-    },
+    hidden: { opacity: 0, height: 0, transition: { duration: 0.3 } },
     visible: {
       opacity: 1,
       height: 'auto',
-      transition: {
-        duration: 0.3,
-        ease: 'easeInOut',
-        staggerChildren: 0.1,
-        when: 'beforeChildren',
-      },
+      transition: { duration: 0.3, staggerChildren: 0.1, when: 'beforeChildren' },
     },
   };
 
   const tabItemVariants = {
     hidden: { opacity: 0, y: -10 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.2,
-      },
-    },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
   };
 
   const hoverTapVariants = {
@@ -83,7 +72,6 @@ const Navbar = ({ activeTab, navigate }) => {
   return (
     <nav className="fixed top-0 left-0 w-full bg-gray-900/90 backdrop-blur-md shadow-lg z-50 border-b border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
-        {/* Logo */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -98,7 +86,6 @@ const Navbar = ({ activeTab, navigate }) => {
           </h1>
         </motion.div>
 
-        {/* Desktop Menu */}
         <div className="hidden md:flex space-x-2 items-center">
           {tabs.map((tab) => (
             <motion.button
@@ -126,9 +113,19 @@ const Navbar = ({ activeTab, navigate }) => {
           >
             <RefreshCw size={20} />
           </motion.button>
+          {user && (
+            <motion.button
+              onClick={handleLogout}
+              whileHover="hover"
+              whileTap="tap"
+              variants={hoverTapVariants}
+              className="ml-2 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+            >
+              Logout
+            </motion.button>
+          )}
         </div>
 
-        {/* Mobile Toggle Button */}
         <div className="md:hidden flex items-center gap-2">
           <motion.button
             onClick={handleRefresh}
@@ -145,16 +142,11 @@ const Navbar = ({ activeTab, navigate }) => {
             whileTap={{ scale: 0.9 }}
             className="p-2 rounded-lg bg-gray-800 text-white focus:outline-none"
           >
-            {isMobileMenuOpen ? (
-              <X size={24} className="text-gray-300" />
-            ) : (
-              <Menu size={24} className="text-gray-300" />
-            )}
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </motion.button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -181,6 +173,17 @@ const Navbar = ({ activeTab, navigate }) => {
                   {tab}
                 </motion.button>
               ))}
+              {user && (
+                <motion.button
+                  onClick={handleLogout}
+                  variants={tabItemVariants}
+                  whileHover={{ backgroundColor: 'rgba(220, 38, 38, 0.2)' }}
+                  whileTap={{ scale: 0.98 }}
+                  className="px-4 py-3 rounded-lg text-left text-red-400 hover:text-white hover:bg-red-700"
+                >
+                  Logout
+                </motion.button>
+              )}
             </motion.div>
           </motion.div>
         )}

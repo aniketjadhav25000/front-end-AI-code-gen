@@ -1,17 +1,22 @@
+// 📁 frontend/src/App.js
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import CodeGenerator from './components/CodeGenerator';
 import History from './components/History';
 import Settings from './components/Settings';
 import Footer from './components/Footer';
+import Login from './components/Auth/Login';
+import Register from './components/Auth/Register';
+import Profile from './components/Profile/Profile';
+import SearchHistory from './components/History/SearchHistory';
+import Dashboard from './components/user/Dashboard';
+import SavedCode from './components/user/SavedCode';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 const ParticlesBackground = () => (
   <div className="fixed inset-0 -z-10 overflow-hidden">
-    {/* Gradient background */}
     <div className="absolute inset-0 bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] opacity-1" />
-
-    {/* Floating particles */}
     <div className="absolute inset-0">
       {Array.from({ length: 60 }).map((_, i) => {
         const size = Math.random() * 4 + 2;
@@ -37,6 +42,11 @@ const ParticlesBackground = () => (
   </div>
 );
 
+const ProtectedRoute = ({ children }) => {
+  const { user } = useAuth();
+  return user ? children : <Navigate to="/login" />;
+};
+
 const AppContent = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -50,7 +60,6 @@ const AppContent = () => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, []);
 
-  // Get active tab from URL
   const activeTab = location.pathname.split('/')[1] || 'generate';
 
   return (
@@ -59,6 +68,12 @@ const AppContent = () => {
       <div className="min-h-screen pt-20 px-4 pb-10 transition-all text-white relative z-10">
         <Navbar activeTab={activeTab} navigate={navigate} />
         <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/saved" element={<ProtectedRoute><SavedCode /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/user-history" element={<ProtectedRoute><SearchHistory /></ProtectedRoute>} />
           <Route path="/" element={
             <CodeGenerator
               prompt={prompt}
@@ -83,8 +98,8 @@ const AppContent = () => {
               setLoading={setLoading}
             />
           } />
-          <Route path="/history" element={<History />} />
-          <Route path="/settings" element={<Settings />} />
+          <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="*" element={
             <CodeGenerator
               prompt={prompt}
@@ -104,12 +119,12 @@ const AppContent = () => {
   );
 };
 
-const App = () => {
-  return (
+const App = () => (
+  <AuthProvider>
     <Router>
       <AppContent />
     </Router>
-  );
-};
+  </AuthProvider>
+);
 
 export default App;
