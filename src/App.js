@@ -5,11 +5,6 @@ import CodeGenerator from './components/CodeGenerator';
 import History from './components/History';
 import Settings from './components/Settings';
 import Footer from './components/Footer';
-import Login from './components/auth/Login';
-import Signup from './components/auth/Signup';
-import VerifyEmail from './components/auth/VerifyEmail';
-import { AuthProvider } from './context/AuthContext';
-import PrivateRoute from './components/auth/PrivateRoute';
 
 const ParticlesBackground = () => (
   <div className="fixed inset-0 -z-10 overflow-hidden">
@@ -64,65 +59,43 @@ const AppContent = () => {
       <div className="min-h-screen pt-20 px-4 pb-10 transition-all text-white relative z-10">
         <Navbar activeTab={activeTab} navigate={navigate} />
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/verify-email/:oobCode" element={<VerifyEmail />} />
-          
           <Route path="/" element={
-            <PrivateRoute>
-              <CodeGenerator
-                prompt={prompt}
-                setPrompt={setPrompt}
-                language={language}
-                setLanguage={setLanguage}
-                response={response}
-                setResponse={setResponse}
-                loading={loading}
-                setLoading={setLoading}
-              />
-            </PrivateRoute>
+            <CodeGenerator
+              prompt={prompt}
+              setPrompt={setPrompt}
+              language={language}
+              setLanguage={setLanguage}
+              response={response}
+              setResponse={setResponse}
+              loading={loading}
+              setLoading={setLoading}
+            />
           } />
-          
           <Route path="/generate" element={
-            <PrivateRoute>
-              <CodeGenerator
-                prompt={prompt}
-                setPrompt={setPrompt}
-                language={language}
-                setLanguage={setLanguage}
-                response={response}
-                setResponse={setResponse}
-                loading={loading}
-                setLoading={setLoading}
-              />
-            </PrivateRoute>
+            <CodeGenerator
+              prompt={prompt}
+              setPrompt={setPrompt}
+              language={language}
+              setLanguage={setLanguage}
+              response={response}
+              setResponse={setResponse}
+              loading={loading}
+              setLoading={setLoading}
+            />
           } />
-          
-          <Route path="/history" element={
-            <PrivateRoute>
-              <History />
-            </PrivateRoute>
-          } />
-          
-          <Route path="/settings" element={
-            <PrivateRoute>
-              <Settings />
-            </PrivateRoute>
-          } />
-          
+          <Route path="/history" element={<History />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={
-            <PrivateRoute>
-              <CodeGenerator
-                prompt={prompt}
-                setPrompt={setPrompt}
-                language={language}
-                setLanguage={setLanguage}
-                response={response}
-                setResponse={setResponse}
-                loading={loading}
-                setLoading={setLoading}
-              />
-            </PrivateRoute>
+            <CodeGenerator
+              prompt={prompt}
+              setPrompt={setPrompt}
+              language={language}
+              setLanguage={setLanguage}
+              response={response}
+              setResponse={setResponse}
+              loading={loading}
+              setLoading={setLoading}
+            />
           } />
         </Routes>
       </div>
@@ -132,11 +105,9 @@ const AppContent = () => {
 };
 
 const App = () => {
-  return (  
+  return (
     <Router>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <AppContent />
     </Router>
   );
 };
