@@ -1,4 +1,3 @@
-// 📁 frontend/src/components/CodeGenerator.js
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -7,11 +6,7 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ReactMarkdown from 'react-markdown';
 import TextareaAutosize from 'react-textarea-autosize';
 import {
-  FiCopy, FiCheck, FiTerminal, FiChevronRight,
-  FiZap, FiRefreshCw, FiEye, FiDownload,
-  FiArrowDownCircle, FiCode, FiStar, FiClock,
-  FiShield, FiLayers, FiGitBranch, FiCpu, FiInfo,
-  FiUsers, FiTrendingUp
+  FiCopy, FiCheck, FiZap, FiDownload, FiEye
 } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { apiPost } from '../services/api';
@@ -19,8 +14,6 @@ import { apiPost } from '../services/api';
 const CodeGenerator = () => {
   const promptRef = useRef(null);
   const outputRef = useRef(null);
-  const generatorSectionRef = useRef(null);
-  const aboutSectionRef = useRef(null);
   const [prompt, setPrompt] = useState('');
   const [language, setLanguage] = useState('python');
   const [response, setResponse] = useState('');
@@ -57,14 +50,16 @@ const CodeGenerator = () => {
       const result = res.data.code || res.data.result || 'No output generated';
       setResponse(result);
 
-      // ✅ Save to MongoDB history
-      await apiPost('/history', { query: prompt });
+      // ✅ Save to MongoDB history WITH result
+     await apiPost('/history', { query: prompt, result, language });
 
-      // ✅ Save code result (optional title generated from prompt preview)
+
+
+      // ✅ Save code snippet (optional title)
       const shortTitle = prompt.length > 40 ? prompt.slice(0, 40) + '...' : prompt;
-      await apiPost('/code', { code: result, title: shortTitle });
+      await apiPost('/code', { title: shortTitle, code: result });
 
-      toast.success('✅ Code generated successfully!', { id: toastId });
+      toast.success('✅ Code generated!', { id: toastId });
     } catch (err) {
       toast.error('❌ Failed to generate code');
       setResponse('❌ Error connecting to backend service');
@@ -89,7 +84,7 @@ const CodeGenerator = () => {
   const handleCopy = () => {
     if (!response) return;
     navigator.clipboard.writeText(response);
-    toast.success('📋 Copied to clipboard!');
+    toast.success('📋 Copied!');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -173,6 +168,7 @@ const CodeGenerator = () => {
               </button>
             </div>
           </div>
+
           {previewMode === 'code' ? (
             <SyntaxHighlighter
               language={language}

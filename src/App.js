@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Navig
 import Navbar from './components/Navbar';
 import CodeGenerator from './components/CodeGenerator';
 import History from './components/History';
-import Settings from './components/Settings';
+import Settings from './components/Profile/Settings';
 import Footer from './components/Footer';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
@@ -73,7 +73,7 @@ const AppContent = () => {
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/saved" element={<ProtectedRoute><SavedCode /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/user-history" element={<ProtectedRoute><SearchHistory /></ProtectedRoute>} />
+          <Route path="/history" element={<ProtectedRoute><SearchHistory /></ProtectedRoute>} />
           <Route path="/" element={
             <CodeGenerator
               prompt={prompt}

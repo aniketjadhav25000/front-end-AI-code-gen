@@ -1,48 +1,34 @@
+// 📁 frontend/src/components/Navbar.jsx
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, RefreshCw } from 'lucide-react';
+import { Menu, X, LogOut, Zap, Clock, Settings, Gauge, LogIn } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
+
+const tabConfig = [
+  { key: 'generate', label: 'Generate', icon: <Zap size={16} />, protected: false },
+  { key: 'history', label: 'History', icon: <Clock size={16} />, protected: true },
+  { key: 'dashboard', label: 'Dashboard', icon: <Gauge size={16} />, protected: true },
+  { key: 'settings', label: 'Settings', icon: <Settings size={16} />, protected: true },
+];
 
 const Navbar = ({ activeTab, navigate }) => {
-  const tabs = ['generate', 'user-history', 'settings', 'dashboard', 'saved'];
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isScrolling, setIsScrolling] = useState(false);
   const { logout, user } = useAuth();
 
-  const scrollToTop = () => {
-    setIsScrolling(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    const checkIfScrolled = () => {
-      if (window.pageYOffset === 0) {
-        setIsScrolling(false);
-        return;
-      }
-      window.scrollTo(0, 0);
-      requestAnimationFrame(checkIfScrolled);
-    };
-
-    setTimeout(() => {
-      if (window.pageYOffset > 0) {
-        checkIfScrolled();
-      } else {
-        setIsScrolling(false);
-      }
-    }, 300);
-  };
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const handleTabClick = (tab) => {
-    navigate(`/${tab}`);
+  const handleTabClick = (tabKey, isProtected) => {
+    if (isProtected && !user) {
+      // Show notification and redirect to login if not authenticated
+      toast.error(`You need to log in to access ${tabKey}.`);
+      navigate('/login');
+      setIsMobileMenuOpen(false); // Close mobile menu if open
+      return;
+    }
+    navigate(`/${tabKey}`);
     setIsMobileMenuOpen(false);
     scrollToTop();
-  };
-
-  const handleRefresh = () => {
-    window.location.reload();
   };
 
   const handleLogout = () => {
@@ -50,28 +36,10 @@ const Navbar = ({ activeTab, navigate }) => {
     navigate('/login');
   };
 
-  const mobileMenuVariants = {
-    hidden: { opacity: 0, height: 0, transition: { duration: 0.3 } },
-    visible: {
-      opacity: 1,
-      height: 'auto',
-      transition: { duration: 0.3, staggerChildren: 0.1, when: 'beforeChildren' },
-    },
-  };
-
-  const tabItemVariants = {
-    hidden: { opacity: 0, y: -10 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
-  };
-
-  const hoverTapVariants = {
-    hover: { scale: 1.05 },
-    tap: { scale: 0.95 },
-  };
-
   return (
     <nav className="fixed top-0 left-0 w-full bg-gray-900/90 backdrop-blur-md shadow-lg z-50 border-b border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+        {/* Logo */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -86,102 +54,107 @@ const Navbar = ({ activeTab, navigate }) => {
           </h1>
         </motion.div>
 
+        {/* Desktop Tabs */}
         <div className="hidden md:flex space-x-2 items-center">
-          {tabs.map((tab) => (
+          {tabConfig.map(({ key, label, icon, protected: isProtected }) => (
             <motion.button
-              key={tab}
-              onClick={() => handleTabClick(tab)}
-              whileHover="hover"
-              whileTap="tap"
-              variants={hoverTapVariants}
-              className={`capitalize px-4 py-2 rounded-lg transition-all duration-200 ${
-                activeTab === tab
+              key={key}
+              onClick={() => handleTabClick(key, isProtected)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`capitalize flex items-center gap-1 px-4 py-2 rounded-lg transition-all duration-200 ${
+                activeTab === key
                   ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/20'
                   : 'text-gray-300 hover:text-white hover:bg-gray-800'
               }`}
             >
-              {tab}
+              {icon}
+              {label}
             </motion.button>
           ))}
-          <motion.button
-            onClick={handleRefresh}
-            whileHover="hover"
-            whileTap="tap"
-            variants={hoverTapVariants}
-            className="ml-2 p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800"
-            title="Refresh current page"
-          >
-            <RefreshCw size={20} />
-          </motion.button>
-          {user && (
+
+          {/* Auth Buttons */}
+          {user ? (
             <motion.button
               onClick={handleLogout}
-              whileHover="hover"
-              whileTap="tap"
-              variants={hoverTapVariants}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               className="ml-2 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
             >
-              Logout
+              <LogOut size={16} className="inline-block mr-1" /> Logout
+            </motion.button>
+          ) : (
+            <motion.button
+              onClick={() => navigate('/login')}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="ml-2 px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
+            >
+              <LogIn size={16} className="inline-block mr-1" /> Login
             </motion.button>
           )}
         </div>
 
+        {/* Mobile menu toggle */}
         <div className="md:hidden flex items-center gap-2">
           <motion.button
-            onClick={handleRefresh}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="p-2 rounded-lg text-gray-300 hover:text-white"
-            title="Refresh"
-          >
-            <RefreshCw size={20} />
-          </motion.button>
-          <motion.button
-            onClick={toggleMobileMenu}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="p-2 rounded-lg bg-gray-800 text-white focus:outline-none"
+            className="p-2 rounded-lg bg-gray-800 text-white"
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </motion.button>
         </div>
       </div>
 
+      {/* Mobile Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
-            variants={mobileMenuVariants}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
             className="md:hidden bg-gray-800/95 backdrop-blur-sm overflow-hidden"
           >
             <motion.div className="flex flex-col px-4 py-2 space-y-1">
-              {tabs.map((tab) => (
+              {tabConfig.map(({ key, label, icon, protected: isProtected }) => (
                 <motion.button
-                  key={tab}
-                  onClick={() => handleTabClick(tab)}
-                  variants={tabItemVariants}
+                  key={key}
+                  onClick={() => handleTabClick(key, isProtected)}
                   whileHover={{ backgroundColor: 'rgba(79, 70, 229, 0.2)' }}
                   whileTap={{ scale: 0.98 }}
-                  className={`capitalize px-4 py-3 rounded-lg text-left transition-all ${
-                    activeTab === tab
+                  className={`capitalize flex items-center gap-2 px-4 py-3 rounded-lg text-left transition-all ${
+                    activeTab === key
                       ? 'bg-indigo-600 text-white font-medium'
                       : 'text-gray-300 hover:text-white hover:bg-gray-700'
                   }`}
                 >
-                  {tab}
+                  {icon} {label}
                 </motion.button>
               ))}
-              {user && (
+
+              {user ? (
                 <motion.button
                   onClick={handleLogout}
-                  variants={tabItemVariants}
                   whileHover={{ backgroundColor: 'rgba(220, 38, 38, 0.2)' }}
                   whileTap={{ scale: 0.98 }}
                   className="px-4 py-3 rounded-lg text-left text-red-400 hover:text-white hover:bg-red-700"
                 >
-                  Logout
+                  <LogOut size={16} className="inline-block mr-1" /> Logout
+                </motion.button>
+              ) : (
+                <motion.button
+                  onClick={() => {
+                    navigate('/login');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  whileHover={{ backgroundColor: 'rgba(79, 70, 229, 0.2)' }}
+                  whileTap={{ scale: 0.98 }}
+                  className="px-4 py-3 rounded-lg text-left text-indigo-400 hover:text-white hover:bg-indigo-600"
+                >
+                  <LogIn size={16} className="inline-block mr-1" /> Login
                 </motion.button>
               )}
             </motion.div>

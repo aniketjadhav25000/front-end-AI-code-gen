@@ -1,11 +1,23 @@
-// 📁 frontend/ai-assistant-ui/src/components/user/Dashboard.jsx
+// 📁 frontend/src/components/user/Dashboard.jsx
 import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { apiGet } from '../../services/api';
+import toast from 'react-hot-toast';
 
 const Dashboard = () => {
   const [codeCount, setCodeCount] = useState(0);
   const [historyCount, setHistoryCount] = useState(0);
   const [email, setEmail] = useState('');
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) {
+      toast.error('To access Dashboard you need to log in first');
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -21,8 +33,9 @@ const Dashboard = () => {
         console.error('Error loading dashboard stats:', err);
       }
     };
-    fetchStats();
-  }, []);
+
+    if (user) fetchStats();
+  }, [user]);
 
   return (
     <div className="max-w-4xl mx-auto p-6 text-white">
